@@ -1,70 +1,86 @@
 package fr.sldevand.activcast;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import androidx.appcompat.app.AppCompatActivity;
 import fr.sldevand.activcast.activity.SettingsActivity;
-import fr.sldevand.activcast.network.GetHttp;
+import fr.sldevand.activcast.buttons.AbstractHttpButton;
+import fr.sldevand.activcast.buttons.GetHttpButton;
+import fr.sldevand.activcast.network.AbstractHttp;
 import fr.sldevand.activcast.network.HttpParamsBuilder;
 import fr.sldevand.activcast.network.NetworkUtil;
 import fr.sldevand.activcast.network.PostHttp;
 import fr.sldevand.activcast.service.YtUrlResolver;
+import fr.sldevand.activcast.utils.Toaster;
 
-public class MainActivity extends AppCompatActivity implements YtUrlResolver.OnResolvedUrlListener, PostHttp.OnHttpResponseListener, GetHttp.OnHttpResponseListener {
+public class MainActivity extends AppCompatActivity implements YtUrlResolver.OnResolvedUrlListener {
+
+    public static final String YOUTUBE_URL_PATTERN = "https://youtu.be/";
 
     protected String baseUrl;
+    protected EditText editText;
+    protected ImageButton playButton;
+    protected ImageButton stopButton;
+    protected Button launchButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         checkConnectivity();
 
-        SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         baseUrl = sharedPreferences.getString(getString(R.string.api_url_key), "");
+        editText = findViewById(R.id.youtube_text_uri);
 
-        ImageButton playButton = findViewById(R.id.button_play);
-        playButton.setOnClickListener(new View.OnClickListener() {
+        playButton = findViewById(R.id.button_play);
+        playButton.setEnabled(false);
+        GetHttpButton playHttpButton = new GetHttpButton(this, playButton, baseUrl + "/command/play");
+        playHttpButton.setOnResponseListener(new AbstractHttpButton.OnResponseListener() {
             @Override
-            public void onClick(View view) {
-                GetHttp getHttp = new GetHttp();
-                getHttp.setOnResponseListener(new GetHttp.OnHttpResponseListener() {
-                    @Override
-                    public void onGetResponse(String response) {
-                        Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
-                    }
-                });
-                getHttp.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, baseUrl + "/command/play");
+            public void onResponse(String response) {
+                setButtonsStates(response);
             }
         });
 
-        ImageButton stopButton = findViewById(R.id.button_stop);
-        stopButton.setOnClickListener(new View.OnClickListener() {
+        stopButton = findViewById(R.id.button_stop);
+        stopButton.setEnabled(false);
+        GetHttpButton stopHttpButton = new GetHttpButton(this, stopButton, baseUrl + "/command/stop");
+        stopHttpButton.setOnResponseListener(new AbstractHttpButton.OnResponseListener() {
             @Override
-            public void onClick(View view) {
-                GetHttp getHttp = new GetHttp();
-                getHttp.setOnResponseListener(new GetHttp.OnHttpResponseListener() {
-                    @Override
-                    public void onGetResponse(String response) {
-                        Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
-                    }
-                });
-                getHttp.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, baseUrl + "/command/stop");
+            public void onResponse(String response) {
+                setButtonsStates(response);
+            }
+        });
+
+        launchButton = findViewById(R.id.launch_button);
+        launchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String ytLink = editText.getText().toString();
+                extract(ytLink);
             }
         });
 
@@ -108,13 +124,21 @@ public class MainActivity extends AppCompatActivity implements YtUrlResolver.OnR
     private void handleIntent() {
         String ytLink = getIntent().getStringExtra(Intent.EXTRA_TEXT);
 
+        editText.setText(ytLink);
         this.extract(ytLink);
     }
 
     private void extract(String ytLink) {
         if (null == ytLink) {
-            Toast.makeText(this, R.string.no_yt_link, Toast.LENGTH_LONG).show();
-            finish();
+            Toaster.longToast(this, R.string.no_yt_link);
+            return;
+        }
+
+        Pattern r = Pattern.compile(YOUTUBE_URL_PATTERN);
+        Matcher m = r.matcher(ytLink);
+        if (!m.lookingAt()) {
+            Toaster.longToast(this, R.string.youtube_pattern_no_match);
+            return;
         }
 
         YtUrlResolver ytUrlResolver = new YtUrlResolver();
@@ -125,28 +149,43 @@ public class MainActivity extends AppCompatActivity implements YtUrlResolver.OnR
     @Override
     public void onResolvedUrl(String ytUrl) {
         String url = baseUrl + "/omx";
-        Toast.makeText(getApplicationContext(),url, Toast.LENGTH_SHORT).show();
-        Log.e("onResolvedUrl", url);
+        Toaster.shortToast(getApplicationContext(), url);
         try {
-            PostHttp postHttp = new PostHttp();
-            postHttp.setOnResponseListener(this);
+            PostHttp launchPostHttp = new PostHttp();
+            launchPostHttp.setOnResponseListener(launchResponseListener());
+
             Map<String, Object> params = new LinkedHashMap<>();
             params.put("url", ytUrl);
             String body = HttpParamsBuilder.buildString(params);
-            postHttp.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url, body);
+
+            launchPostHttp.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url, body);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
-            Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toaster.shortToast(getApplicationContext(), e.getMessage());
         }
     }
 
-    @Override
-    public void onGetResponse(String response) {
-        Log.e("IN GET RESPONSE", response);
+    public PostHttp.OnHttpResponseListener launchResponseListener() {
+        return new AbstractHttp.OnHttpResponseListener() {
+            @Override
+            public void onResponse(String response) {
+                setButtonsStates(response);
+            }
+        };
     }
 
-    @Override
-    public void onPostResponse(String response) {
-        Log.e("IN POST RESPONSE", response);
+    public void setButtonsStates(String response) {
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            if (jsonObject.has("running")) {
+                boolean running = Boolean.valueOf(String.valueOf(jsonObject.get("running")));
+                launchButton.setEnabled(!running);
+                playButton.setEnabled(running);
+                stopButton.setEnabled(running);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toaster.shortToast(getApplicationContext(), e.getMessage());
+        }
     }
 }

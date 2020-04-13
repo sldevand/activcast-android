@@ -22,5 +22,12 @@
     <string name="no_wifi">no wifi</string>
     <string name="wifi_disconnected">Oops ! Your Wifi is disconnected !</string>
     <string name="network_prefs">Network Preferences</string>
+    <string name="button_play">button play</string>
+    <string name="button_stop">button_stop</string>
+    <string name="youtube_url">Youtube Url</string>
+    <string name="launch">launch</string>
+    <string name="youtube_pattern_no_match">This url is not a Youtube Share Url</string>
+    <string name="no_fields">Could not fetch values of fields</string>
+    <string name="empty_fields">Fields are empty</string>
 
 </resources>

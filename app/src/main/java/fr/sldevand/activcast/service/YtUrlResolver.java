@@ -2,11 +2,11 @@ package fr.sldevand.activcast.service;
 
 import android.content.Context;
 import android.util.SparseArray;
-import android.widget.Toast;
 
 import at.huber.youtubeExtractor.VideoMeta;
 import at.huber.youtubeExtractor.YouTubeExtractor;
 import at.huber.youtubeExtractor.YtFile;
+import fr.sldevand.activcast.utils.Toaster;
 
 public class YtUrlResolver {
     private static final int ITAG_720 = 22;
@@ -39,7 +39,7 @@ public class YtUrlResolver {
                     }
 
                 } catch (Exception exception) {
-                    Toast.makeText(context, exception.getMessage(), Toast.LENGTH_LONG).show();
+                    Toaster.longToast(context, exception.getMessage());
                 }
             }
         }.extract(youtubeLink, false, false);

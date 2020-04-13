@@ -1,29 +1,26 @@
 package fr.sldevand.activcast.network;
 
-import android.os.AsyncTask;
-
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-public class PostHttp extends AsyncTask<String, Void, String> {
+import fr.sldevand.activcast.Helper.ErrorResponse;
 
-    private OnHttpResponseListener responseListener;
-
+public class PostHttp extends AbstractHttp {
     @Override
     protected String doInBackground(String... strings) {
         String address = strings[0];
         String body = strings[1];
-        String NOT_FOUND = "404";
-        if (null == address || address.equals("")) {
-            return NOT_FOUND;
+        if (null == address || address.equals("")
+            || null == body || body.equals("")
+        ) {
+            return ErrorResponse.NOT_FOUND;
         }
+
         InputStream in = null;
         try {
             byte[] postDataBytes = body.getBytes(StandardCharsets.UTF_8);
@@ -44,7 +41,7 @@ public class PostHttp extends AsyncTask<String, Void, String> {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-            return NOT_FOUND;
+            return ErrorResponse.NOT_FOUND;
         } finally {
             try {
                 if (null != in) in.close();
@@ -53,33 +50,6 @@ public class PostHttp extends AsyncTask<String, Void, String> {
             }
         }
 
-        return NOT_FOUND;
-    }
-
-    public void setOnResponseListener(OnHttpResponseListener rl) {
-        this.responseListener = rl;
-    }
-
-    @Override
-    protected void onPostExecute(String s) {
-        super.onPostExecute(s);
-        if (null != this.responseListener) {
-            responseListener.onPostResponse(s);
-        }
-    }
-
-    private String readStream(InputStream is) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        BufferedReader r = new BufferedReader(new InputStreamReader(is), 1000);
-        for (String line = r.readLine(); line != null; line = r.readLine()) {
-            sb.append(line);
-        }
-        is.close();
-
-        return sb.toString();
-    }
-
-    public interface OnHttpResponseListener {
-        void onPostResponse(String response);
+        return ErrorResponse.NOT_FOUND;
     }
 }
