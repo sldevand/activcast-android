@@ -42,7 +42,7 @@ public class YtUrlResolver {
                     Toaster.longToast(context, exception.getMessage());
                 }
             }
-        }.extract(youtubeLink, false, false);
+        }.extract(youtubeLink, true, true);
     }
 
     private static void throwNotAvailableFormatException() throws Exception {

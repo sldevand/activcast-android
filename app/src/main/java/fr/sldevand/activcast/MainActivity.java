@@ -2,8 +2,6 @@ package fr.sldevand.activcast;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -15,8 +13,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -26,6 +22,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import androidx.appcompat.app.AppCompatActivity;
 import fr.sldevand.activcast.activity.SettingsActivity;
 import fr.sldevand.activcast.buttons.AbstractHttpButton;
 import fr.sldevand.activcast.buttons.GetHttpButton;
@@ -37,8 +34,8 @@ import fr.sldevand.activcast.service.YtUrlResolver;
 import fr.sldevand.activcast.utils.Toaster;
 
 public class MainActivity extends AppCompatActivity implements YtUrlResolver.OnResolvedUrlListener {
-
-    public static final String YOUTUBE_URL_PATTERN = "https://youtu.be/";
+    public static final Pattern YOUTUBE_PAGE_LINK = Pattern.compile("(http|https)://(www\\.|m.|)youtube\\.com/watch\\?v=(.+?)( |\\z|&)");
+    public static final Pattern YOUTUBE_SHORT_LINK = Pattern.compile("(http|https)://(www\\.|)youtu.be/(.+?)( |\\z|&)");
 
     protected String baseUrl;
     protected EditText editText;
@@ -79,8 +76,7 @@ public class MainActivity extends AppCompatActivity implements YtUrlResolver.OnR
         launchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String ytLink = editText.getText().toString();
-                extract(ytLink);
+                extract(editText.getText().toString());
             }
         });
 
@@ -134,28 +130,41 @@ public class MainActivity extends AppCompatActivity implements YtUrlResolver.OnR
             return;
         }
 
-        Pattern r = Pattern.compile(YOUTUBE_URL_PATTERN);
-        Matcher m = r.matcher(ytLink);
-        if (!m.lookingAt()) {
-            Toaster.longToast(this, R.string.youtube_pattern_no_match);
+        Matcher matcherShortLink = YOUTUBE_SHORT_LINK.matcher(ytLink);
+        Matcher matcherPageLink = YOUTUBE_PAGE_LINK.matcher(ytLink);
+
+        if (!matcherShortLink.find() && !matcherPageLink.find()) {
+            Toaster.shortToast(this, R.string.youtube_pattern_no_match);
             return;
         }
 
-        YtUrlResolver ytUrlResolver = new YtUrlResolver();
-        ytUrlResolver.setResolvedUrlListener(this);
-        YtUrlResolver.resolve(this, ytLink);
+        try {
+            //Convert youtube link on Android device
+            YtUrlResolver ytUrlResolver = new YtUrlResolver();
+            ytUrlResolver.setResolvedUrlListener(this);
+            YtUrlResolver.resolve(this, ytLink);
+        } catch (Exception exception) {
+            String url = baseUrl + "/yt";
+            //Convert youtube link with youtube-dl on Raspbian if android device cannot
+            launchVideo(url, ytLink);
+        }
     }
 
     @Override
     public void onResolvedUrl(String ytUrl) {
         String url = baseUrl + "/omx";
+        launchVideo(url, ytUrl);
+    }
+
+    public void launchVideo(String url, String videoUrl) {
+
         Toaster.shortToast(getApplicationContext(), url);
         try {
             PostHttp launchPostHttp = new PostHttp();
             launchPostHttp.setOnResponseListener(launchResponseListener());
 
             Map<String, Object> params = new LinkedHashMap<>();
-            params.put("url", ytUrl);
+            params.put("url", videoUrl);
             String body = HttpParamsBuilder.buildString(params);
 
             launchPostHttp.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url, body);
