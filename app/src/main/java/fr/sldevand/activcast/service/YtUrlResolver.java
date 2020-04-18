@@ -14,14 +14,15 @@ public class YtUrlResolver {
 
     private static OnResolvedUrlListener onResolvedUrlListener;
 
-    public static void resolve(final Context context, String youtubeLink) {
+    public static void resolve(final Context context, final String youtubeLink) {
         new YouTubeExtractor(context) {
             @Override
             public void onExtractionComplete(SparseArray<YtFile> ytFiles, VideoMeta vMeta) {
 
                 try {
                     if (null == ytFiles) {
-                        throwNotAvailableFormatsException();
+                        notAvailableFormatsError(youtubeLink);
+                        return;
                     }
 
                     YtFile ytFile = ytFiles.get(ITAG_720);
@@ -30,7 +31,8 @@ public class YtUrlResolver {
                     }
 
                     if (null == ytFile) {
-                        throwNotAvailableFormatException();
+                        notAvailableFormatError(youtubeLink);
+                        return;
                     }
 
                     String downloadUrl = ytFile.getUrl();
@@ -45,12 +47,12 @@ public class YtUrlResolver {
         }.extract(youtubeLink, true, true);
     }
 
-    private static void throwNotAvailableFormatException() throws Exception {
-        throw new Exception("There is no available High quality format for this video");
+    private static void notAvailableFormatsError(String youtubeLink) {
+        onResolvedUrlListener.onError("There is no available High quality format for this video", youtubeLink);
     }
 
-    private static void throwNotAvailableFormatsException() throws Exception {
-        throw new Exception("No youtube links could be extracted");
+    private static void notAvailableFormatError(String youtubeLink) {
+        onResolvedUrlListener.onError("No youtube links could be extracted", youtubeLink);
     }
 
     public void setResolvedUrlListener(OnResolvedUrlListener listener) {
@@ -59,5 +61,6 @@ public class YtUrlResolver {
 
     public interface OnResolvedUrlListener {
         void onResolvedUrl(String url);
+        void onError(String message, String youtubeLink);
     }
 }

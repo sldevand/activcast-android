@@ -29,5 +29,9 @@
     <string name="no_fields">Could not fetch values of fields</string>
     <string name="empty_fields">Fields are empty</string>
     <string name="version">X.X.X</string>
+    <string name="button_previous">button_previous</string>
+    <string name="button_rewind">button_rewind</string>
+    <string name="button_ff">button_ff</string>
+    <string name="button_next">button_next</string>
 
 </resources>

@@ -1,11 +1,8 @@
 package fr.sldevand.activcast;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -18,24 +15,19 @@ import android.widget.TextView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import androidx.appcompat.app.AppCompatActivity;
 import fr.sldevand.activcast.activity.SettingsActivity;
-import fr.sldevand.activcast.buttons.AbstractHttpButton;
-import fr.sldevand.activcast.buttons.GetHttpButton;
-import fr.sldevand.activcast.network.AbstractHttp;
-import fr.sldevand.activcast.network.HttpParamsBuilder;
+import fr.sldevand.activcast.helper.PrefsManager;
 import fr.sldevand.activcast.network.NetworkUtil;
-import fr.sldevand.activcast.network.PostHttp;
+import fr.sldevand.activcast.service.AbstractService;
+import fr.sldevand.activcast.service.CommandService;
 import fr.sldevand.activcast.service.YtUrlResolver;
 import fr.sldevand.activcast.utils.Toaster;
 
-public class MainActivity extends AppCompatActivity implements YtUrlResolver.OnResolvedUrlListener {
+public class MainActivity extends AppCompatActivity {
     public static final Pattern YOUTUBE_PAGE_LINK = Pattern.compile("(http|https)://(www\\.|m.|)youtube\\.com/watch\\?v=(.+?)( |\\z|&)");
     public static final Pattern YOUTUBE_SHORT_LINK = Pattern.compile("(http|https)://(www\\.|)youtu.be/(.+?)( |\\z|&)");
 
@@ -48,73 +40,81 @@ public class MainActivity extends AppCompatActivity implements YtUrlResolver.OnR
     protected ImageButton fwd600Button;
     protected ImageButton back600Button;
     protected Button launchButton;
+    protected CommandService commandService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         checkConnectivity();
         displayVersionTextView();
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        baseUrl = sharedPreferences.getString(getString(R.string.api_url_key), "");
+        PrefsManager.launch(this);
+        baseUrl = PrefsManager.apiUrl;
+
+        commandService = new CommandService();
+        commandService.setOnResponseListener(new AbstractService.OnResponseListener() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    if (jsonObject.has("running")) {
+                        boolean running = Boolean.valueOf(String.valueOf(jsonObject.get("running")));
+                        setButtonStates(running);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Toaster.shortToast(getApplicationContext(), e.getMessage());
+                }
+            }
+        });
+
         editText = findViewById(R.id.youtube_text_uri);
 
         playButton = findViewById(R.id.button_play);
-        playButton.setEnabled(false);
-        GetHttpButton playHttpButton = new GetHttpButton(this, playButton, baseUrl + "/command/play");
-        playHttpButton.setOnResponseListener(new AbstractHttpButton.OnResponseListener() {
+        playButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onResponse(String response) {
-                setButtonsStates(response);
+            public void onClick(View view) {
+                commandService.play();
             }
         });
 
         stopButton = findViewById(R.id.button_stop);
-        stopButton.setEnabled(false);
-        GetHttpButton stopHttpButton = new GetHttpButton(this, stopButton, baseUrl + "/command/stop");
-        stopHttpButton.setOnResponseListener(new AbstractHttpButton.OnResponseListener() {
+        stopButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onResponse(String response) {
-                setButtonsStates(response);
+            public void onClick(View view) {
+                commandService.stop();
             }
         });
 
         fwd30Button = findViewById(R.id.button_ff);
-        fwd30Button.setEnabled(false);
-        GetHttpButton fwd30HttpButton = new GetHttpButton(this, fwd30Button, baseUrl + "/command/fwd30");
-        fwd30HttpButton.setOnResponseListener(new AbstractHttpButton.OnResponseListener() {
+        fwd30Button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onResponse(String response) {
-                setButtonsStates(response);
+            public void onClick(View view) {
+                commandService.fwd30();
             }
         });
 
         back30Button = findViewById(R.id.button_rewind);
-        back30Button.setEnabled(false);
-        GetHttpButton back30HttpButton = new GetHttpButton(this, back30Button, baseUrl + "/command/back30");
-        back30HttpButton.setOnResponseListener(new AbstractHttpButton.OnResponseListener() {
+        back30Button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onResponse(String response) {
-                setButtonsStates(response);
+            public void onClick(View view) {
+                commandService.back30();
             }
         });
 
+
         fwd600Button = findViewById(R.id.button_next);
-        fwd600Button.setEnabled(false);
-        GetHttpButton fwd600HttpButton = new GetHttpButton(this, fwd600Button, baseUrl + "/command/fwd600");
-        fwd600HttpButton.setOnResponseListener(new AbstractHttpButton.OnResponseListener() {
+        fwd600Button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onResponse(String response) {
-                setButtonsStates(response);
+            public void onClick(View view) {
+                commandService.fwd600();
             }
         });
 
         back600Button = findViewById(R.id.button_previous);
-        back600Button.setEnabled(false);
-        GetHttpButton back600HttpButton = new GetHttpButton(this, back600Button, baseUrl + "/command/back600");
-        back600HttpButton.setOnResponseListener(new AbstractHttpButton.OnResponseListener() {
+        back600Button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onResponse(String response) {
-                setButtonsStates(response);
+            public void onClick(View view) {
+                commandService.back600();
             }
         });
 
@@ -125,6 +125,8 @@ public class MainActivity extends AppCompatActivity implements YtUrlResolver.OnR
                 extract(editText.getText().toString());
             }
         });
+
+        setButtonStates(false);
 
         if (null == savedInstanceState && Intent.ACTION_SEND.equals(getIntent().getAction())
                 && getIntent().getType() != null && "text/plain".equals(getIntent().getType())
@@ -184,68 +186,41 @@ public class MainActivity extends AppCompatActivity implements YtUrlResolver.OnR
             return;
         }
 
-        try {
-            //Convert youtube link on Android device
-            YtUrlResolver ytUrlResolver = new YtUrlResolver();
-            ytUrlResolver.setResolvedUrlListener(this);
-            YtUrlResolver.resolve(this, ytLink);
-        } catch (Exception exception) {
-            String url = baseUrl + "/yt";
-            //Convert youtube link with youtube-dl on Raspbian if android device cannot
-            launchVideo(url, ytLink);
-        }
-    }
-
-    @Override
-    public void onResolvedUrl(String ytUrl) {
-        String url = baseUrl + "/omx";
-        launchVideo(url, ytUrl);
-    }
-
-    public void launchVideo(String url, String videoUrl) {
-
-        Toaster.shortToast(getApplicationContext(), url);
-        try {
-            PostHttp launchPostHttp = new PostHttp();
-            launchPostHttp.setOnResponseListener(launchResponseListener());
-
-            Map<String, Object> params = new LinkedHashMap<>();
-            params.put("url", videoUrl);
-            String body = HttpParamsBuilder.buildString(params);
-
-            launchPostHttp.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url, body);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            Toaster.shortToast(getApplicationContext(), e.getMessage());
-        }
-    }
-
-    public PostHttp.OnHttpResponseListener launchResponseListener() {
-        return new AbstractHttp.OnHttpResponseListener() {
+        //Convert youtube link on Android device
+        YtUrlResolver ytUrlResolver = new YtUrlResolver();
+        ytUrlResolver.setResolvedUrlListener(new YtUrlResolver.OnResolvedUrlListener() {
             @Override
-            public void onResponse(String response) {
-                setButtonsStates(response);
+            public void onResolvedUrl(String url) {
+                launchVideo("/omx", url);
             }
-        };
+
+            @Override
+            public void onError(String message, String youtubeLink) {
+                launchVideo("/yt", youtubeLink);
+            }
+        });
+        launchButton.setEnabled(false);
+        YtUrlResolver.resolve(this, ytLink);
     }
 
-    public void setButtonsStates(String response) {
+    public void launchVideo(String uri, String videoUrl) {
         try {
-            JSONObject jsonObject = new JSONObject(response);
-            if (jsonObject.has("running")) {
-                boolean running = Boolean.valueOf(String.valueOf(jsonObject.get("running")));
-                launchButton.setEnabled(!running);
-                playButton.setEnabled(running);
-                stopButton.setEnabled(running);
-                fwd30Button.setEnabled(running);
-                fwd600Button.setEnabled(running);
-                back30Button.setEnabled(running);
-                back600Button.setEnabled(running);
-            }
-        } catch (JSONException e) {
+            commandService.launch(uri, videoUrl);
+        } catch (Exception e) {
+            commandService.isRunning();
             e.printStackTrace();
             Toaster.shortToast(getApplicationContext(), e.getMessage());
         }
+    }
+
+    public void setButtonStates(boolean running) {
+        launchButton.setEnabled(!running);
+        playButton.setEnabled(running);
+        stopButton.setEnabled(running);
+        fwd30Button.setEnabled(running);
+        fwd600Button.setEnabled(running);
+        back30Button.setEnabled(running);
+        back600Button.setEnabled(running);
     }
 
     private void displayVersionTextView() {

@@ -7,7 +7,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import fr.sldevand.activcast.Helper.ErrorResponse;
+import fr.sldevand.activcast.helper.ErrorResponse;
 
 public class GetHttp extends AbstractHttp{
     @Override

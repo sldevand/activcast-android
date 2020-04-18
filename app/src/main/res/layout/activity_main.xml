@@ -52,7 +52,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:src="@drawable/ic_skip_previous_white_24dp"
-            android:contentDescription="@string/button_stop"
+            android:contentDescription="@string/button_previous"
             android:backgroundTint="@color/button_neutral_color_selector"
             android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
 
@@ -62,7 +62,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:src="@drawable/ic_fast_rewind_white_24dp"
-            android:contentDescription="@string/button_stop"
+            android:contentDescription="@string/button_rewind"
             android:backgroundTint="@color/button_neutral_color_selector"
             android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
 
@@ -92,7 +92,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:src="@drawable/ic_fast_forward_white_24dp"
-            android:contentDescription="@string/button_stop"
+            android:contentDescription="@string/button_ff"
             android:backgroundTint="@color/button_neutral_color_selector"
             android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
 
@@ -102,7 +102,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:src="@drawable/ic_skip_next_white_24dp"
-            android:contentDescription="@string/button_stop"
+            android:contentDescription="@string/button_next"
             android:backgroundTint="@color/button_neutral_color_selector"
             android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
     </LinearLayout>

@@ -8,7 +8,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-import fr.sldevand.activcast.Helper.ErrorResponse;
+import fr.sldevand.activcast.helper.ErrorResponse;
 
 public class PostHttp extends AbstractHttp {
     @Override
