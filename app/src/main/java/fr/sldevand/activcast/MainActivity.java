@@ -2,6 +2,7 @@ package fr.sldevand.activcast;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,13 +43,17 @@ public class MainActivity extends AppCompatActivity implements YtUrlResolver.OnR
     protected EditText editText;
     protected ImageButton playButton;
     protected ImageButton stopButton;
+    protected ImageButton fwd30Button;
+    protected ImageButton back30Button;
+    protected ImageButton fwd600Button;
+    protected ImageButton back600Button;
     protected Button launchButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         checkConnectivity();
-
+        displayVersionTextView();
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         baseUrl = sharedPreferences.getString(getString(R.string.api_url_key), "");
         editText = findViewById(R.id.youtube_text_uri);
@@ -66,6 +72,46 @@ public class MainActivity extends AppCompatActivity implements YtUrlResolver.OnR
         stopButton.setEnabled(false);
         GetHttpButton stopHttpButton = new GetHttpButton(this, stopButton, baseUrl + "/command/stop");
         stopHttpButton.setOnResponseListener(new AbstractHttpButton.OnResponseListener() {
+            @Override
+            public void onResponse(String response) {
+                setButtonsStates(response);
+            }
+        });
+
+        fwd30Button = findViewById(R.id.button_ff);
+        fwd30Button.setEnabled(false);
+        GetHttpButton fwd30HttpButton = new GetHttpButton(this, fwd30Button, baseUrl + "/command/fwd30");
+        fwd30HttpButton.setOnResponseListener(new AbstractHttpButton.OnResponseListener() {
+            @Override
+            public void onResponse(String response) {
+                setButtonsStates(response);
+            }
+        });
+
+        back30Button = findViewById(R.id.button_rewind);
+        back30Button.setEnabled(false);
+        GetHttpButton back30HttpButton = new GetHttpButton(this, back30Button, baseUrl + "/command/back30");
+        back30HttpButton.setOnResponseListener(new AbstractHttpButton.OnResponseListener() {
+            @Override
+            public void onResponse(String response) {
+                setButtonsStates(response);
+            }
+        });
+
+        fwd600Button = findViewById(R.id.button_next);
+        fwd600Button.setEnabled(false);
+        GetHttpButton fwd600HttpButton = new GetHttpButton(this, fwd600Button, baseUrl + "/command/fwd600");
+        fwd600HttpButton.setOnResponseListener(new AbstractHttpButton.OnResponseListener() {
+            @Override
+            public void onResponse(String response) {
+                setButtonsStates(response);
+            }
+        });
+
+        back600Button = findViewById(R.id.button_previous);
+        back600Button.setEnabled(false);
+        GetHttpButton back600HttpButton = new GetHttpButton(this, back600Button, baseUrl + "/command/back600");
+        back600HttpButton.setOnResponseListener(new AbstractHttpButton.OnResponseListener() {
             @Override
             public void onResponse(String response) {
                 setButtonsStates(response);
@@ -191,10 +237,27 @@ public class MainActivity extends AppCompatActivity implements YtUrlResolver.OnR
                 launchButton.setEnabled(!running);
                 playButton.setEnabled(running);
                 stopButton.setEnabled(running);
+                fwd30Button.setEnabled(running);
+                fwd600Button.setEnabled(running);
+                back30Button.setEnabled(running);
+                back600Button.setEnabled(running);
             }
         } catch (JSONException e) {
             e.printStackTrace();
             Toaster.shortToast(getApplicationContext(), e.getMessage());
+        }
+    }
+
+    private void displayVersionTextView() {
+        TextView versionTextView = findViewById(R.id.versionTextView);
+        try {
+            String versionName = getApplicationContext()
+                    .getPackageManager()
+                    .getPackageInfo(getApplicationContext().getPackageName(), 0)
+                    .versionName;
+            versionTextView.setText(versionName);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
         }
     }
 }

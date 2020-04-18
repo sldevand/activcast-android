@@ -12,7 +12,7 @@
         android:layout_width="256dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout2"
+        app:layout_constraintBottom_toTopOf="@+id/buttons_layout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -37,18 +37,40 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/linearLayout2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/buttons_layout"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/button_height"
+        android:layout_marginHorizontal="20dp"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/layout_seeker"
+        app:layout_constraintBottom_toTopOf="@+id/layout_version"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
         <ImageButton
+            android:id="@+id/button_previous"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@drawable/ic_skip_previous_white_24dp"
+            android:contentDescription="@string/button_stop"
+            android:backgroundTint="@color/button_neutral_color_selector"
+            android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
+
+        <ImageButton
+            android:id="@+id/button_rewind"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@drawable/ic_fast_rewind_white_24dp"
+            android:contentDescription="@string/button_stop"
+            android:backgroundTint="@color/button_neutral_color_selector"
+            android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
+
+        <ImageButton
             android:id="@+id/button_play"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:src="@drawable/ic_play_arrow_white_24dp"
             android:contentDescription="@string/button_play"
             android:backgroundTint="@color/button_accent_color_selector"
@@ -56,16 +78,37 @@
 
         <ImageButton
             android:id="@+id/button_stop"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:src="@drawable/ic_stop_white_24dp"
             android:contentDescription="@string/button_stop"
             android:backgroundTint="@color/button_primary_color_selector"
             android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
+
+        <ImageButton
+            android:id="@+id/button_ff"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@drawable/ic_fast_forward_white_24dp"
+            android:contentDescription="@string/button_stop"
+            android:backgroundTint="@color/button_neutral_color_selector"
+            android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
+
+        <ImageButton
+            android:id="@+id/button_next"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@drawable/ic_skip_next_white_24dp"
+            android:contentDescription="@string/button_stop"
+            android:backgroundTint="@color/button_neutral_color_selector"
+            android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/layout_seeker"
+        android:id="@+id/layout_version"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -73,17 +116,12 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <SeekBar
-            android:id="@+id/seekbar"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:layout_weight="1" />
-
         <TextView
+            android:id="@+id/versionTextView"
             android:layout_width="match_parent"
-            android:layout_height="32dp"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:text="@string/timestamp"
+            android:text="@string/version"
             android:textAlignment="center" />
     </LinearLayout>
 
