@@ -8,9 +8,7 @@ import java.util.Objects;
 
 import fr.sldevand.activcast.R;
 
-
 public class NetworkChangeReceiver extends BroadcastReceiver {
-
 
     private OnNetworkChangedListener onNetworkChangedListener;
 
@@ -20,7 +18,6 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
         if (Objects.requireNonNull(intent.getAction()).equals(context.getString(R.string.wifi_state_change))) {
             Integer status = NetworkUtil.getConnectivityStatus(context);
             String statusStr = NetworkUtil.getConnectivityStatusString(context);
@@ -33,5 +30,4 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
     public interface OnNetworkChangedListener {
         void onChange(Integer status, String statusStr);
     }
-
 }

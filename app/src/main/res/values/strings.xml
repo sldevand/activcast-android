@@ -33,5 +33,13 @@
     <string name="button_rewind">button_rewind</string>
     <string name="button_ff">button_ff</string>
     <string name="button_next">button_next</string>
+    <string name="connection_indicator">connection_indicator</string>
+    <string name="disconnected">disconnected</string>
+    <string name="connected">Connected</string>
+    <string name="timeout">Timeout</string>
+    <string name="domain_url">Domain URL</string>
+    <string name="domain_url_key">domain_url_key</string>
+    <string name="socketio_port">SocketIO Port</string>
+    <string name="socket_io_port_key">socket_io_port</string>
 
 </resources>

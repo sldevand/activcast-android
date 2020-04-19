@@ -2,9 +2,19 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="@string/network_prefs">
         <EditTextPreference
-            android:defaultValue="@string/api_url_summary"
+            android:defaultValue="http://raspberrypi:8080"
+            android:dialogTitle="@string/domain_url"
+            android:key="@string/domain_url_key"
+            android:title="@string/domain_url" />
+        <EditTextPreference
+            android:defaultValue="/activcast"
             android:dialogTitle="@string/api_url_title"
             android:key="@string/api_url_key"
             android:title="@string/api_url_title" />
+        <EditTextPreference
+            android:defaultValue="5901"
+            android:dialogTitle="@string/socketio_port"
+            android:key="@string/socket_io_port_key"
+            android:title="@string/socketio_port" />
     </PreferenceCategory>
 </PreferenceScreen>

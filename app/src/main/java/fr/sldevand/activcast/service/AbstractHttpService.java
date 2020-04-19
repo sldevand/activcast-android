@@ -1,14 +1,15 @@
 package fr.sldevand.activcast.service;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import fr.sldevand.activcast.helper.PrefsManager;
 import fr.sldevand.activcast.network.AbstractHttp;
 import fr.sldevand.activcast.network.GetHttp;
 import fr.sldevand.activcast.network.PostHttp;
 
-abstract public class AbstractService {
-    OnResponseListener onResponseListener;
+abstract public class AbstractHttpService {
+    private OnResponseListener onResponseListener;
 
     protected void get(String uri) {
         GetHttp getHttp = new GetHttp();
@@ -20,7 +21,10 @@ abstract public class AbstractService {
                 }
             }
         });
-        getHttp.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, PrefsManager.apiUrl + uri);
+        getHttp.executeOnExecutor(
+                AsyncTask.THREAD_POOL_EXECUTOR,
+                PrefsManager.apiDomain + PrefsManager.apiUrl + uri
+        );
     }
 
     protected void post(String uri, String body) {
@@ -33,7 +37,10 @@ abstract public class AbstractService {
                 }
             }
         });
-        postHttp.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, PrefsManager.apiUrl + uri, body);
+        postHttp.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+                PrefsManager.apiDomain + PrefsManager.apiUrl + uri,
+                body
+        );
     }
 
     public void setOnResponseListener(OnResponseListener onResponseListener) {

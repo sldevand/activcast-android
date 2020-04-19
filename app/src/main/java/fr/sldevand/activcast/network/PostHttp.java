@@ -8,7 +8,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-import fr.sldevand.activcast.helper.ErrorResponse;
+import fr.sldevand.activcast.helper.JsonResponse;
 
 public class PostHttp extends AbstractHttp {
     @Override
@@ -18,7 +18,7 @@ public class PostHttp extends AbstractHttp {
         if (null == address || address.equals("")
             || null == body || body.equals("")
         ) {
-            return ErrorResponse.NOT_FOUND;
+            return JsonResponse.NOT_FOUND;
         }
 
         InputStream in = null;
@@ -41,7 +41,7 @@ public class PostHttp extends AbstractHttp {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-            return ErrorResponse.NOT_FOUND;
+            return JsonResponse.NOT_FOUND;
         } finally {
             try {
                 if (null != in) in.close();
@@ -50,6 +50,6 @@ public class PostHttp extends AbstractHttp {
             }
         }
 
-        return ErrorResponse.NOT_FOUND;
+        return JsonResponse.NOT_FOUND;
     }
 }

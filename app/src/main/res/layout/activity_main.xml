@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
+
+    <include layout="@layout/connection_indicator"/>
 
     <LinearLayout
         android:id="@+id/layout_Url"
@@ -29,10 +30,9 @@
             android:id="@+id/launch_button"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="@string/launch"
             android:backgroundTint="@color/button_accent_color_selector"
             android:foreground="?android:attr/selectableItemBackgroundBorderless"
-            />
+            android:text="@string/launch" />
 
     </LinearLayout>
 
@@ -51,60 +51,60 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/ic_skip_previous_white_24dp"
-            android:contentDescription="@string/button_previous"
             android:backgroundTint="@color/button_neutral_color_selector"
-            android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
+            android:contentDescription="@string/button_previous"
+            android:foreground="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_skip_previous_white_24dp" />
 
         <ImageButton
             android:id="@+id/button_rewind"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/ic_fast_rewind_white_24dp"
-            android:contentDescription="@string/button_rewind"
             android:backgroundTint="@color/button_neutral_color_selector"
-            android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
+            android:contentDescription="@string/button_rewind"
+            android:foreground="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_fast_rewind_white_24dp" />
 
         <ImageButton
             android:id="@+id/button_play"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/ic_play_arrow_white_24dp"
-            android:contentDescription="@string/button_play"
             android:backgroundTint="@color/button_accent_color_selector"
-            android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
+            android:contentDescription="@string/button_play"
+            android:foreground="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_play_arrow_white_24dp" />
 
         <ImageButton
             android:id="@+id/button_stop"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/ic_stop_white_24dp"
-            android:contentDescription="@string/button_stop"
             android:backgroundTint="@color/button_primary_color_selector"
-            android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
+            android:contentDescription="@string/button_stop"
+            android:foreground="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_stop_white_24dp" />
 
         <ImageButton
             android:id="@+id/button_ff"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/ic_fast_forward_white_24dp"
-            android:contentDescription="@string/button_ff"
             android:backgroundTint="@color/button_neutral_color_selector"
-            android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
+            android:contentDescription="@string/button_ff"
+            android:foreground="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_fast_forward_white_24dp" />
 
         <ImageButton
             android:id="@+id/button_next"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/ic_skip_next_white_24dp"
-            android:contentDescription="@string/button_next"
             android:backgroundTint="@color/button_neutral_color_selector"
-            android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
+            android:contentDescription="@string/button_next"
+            android:foreground="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_skip_next_white_24dp" />
     </LinearLayout>
 
     <LinearLayout

@@ -19,19 +19,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import androidx.appcompat.app.AppCompatActivity;
+
 import fr.sldevand.activcast.activity.SettingsActivity;
+import fr.sldevand.activcast.components.ConnectionIndicator;
 import fr.sldevand.activcast.helper.PrefsManager;
+import fr.sldevand.activcast.interfaces.SocketIOEventsListener;
 import fr.sldevand.activcast.network.NetworkUtil;
-import fr.sldevand.activcast.service.AbstractService;
-import fr.sldevand.activcast.service.CommandService;
+import fr.sldevand.activcast.network.SocketIOHolder;
+import fr.sldevand.activcast.service.AbstractHttpService;
+import fr.sldevand.activcast.service.CommandSocketIoService;
 import fr.sldevand.activcast.service.YtUrlResolver;
 import fr.sldevand.activcast.utils.Toaster;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SocketIOEventsListener {
     public static final Pattern YOUTUBE_PAGE_LINK = Pattern.compile("(http|https)://(www\\.|m.|)youtube\\.com/watch\\?v=(.+?)( |\\z|&)");
     public static final Pattern YOUTUBE_SHORT_LINK = Pattern.compile("(http|https)://(www\\.|)youtu.be/(.+?)( |\\z|&)");
 
-    protected String baseUrl;
     protected EditText editText;
     protected ImageButton playButton;
     protected ImageButton stopButton;
@@ -40,7 +43,8 @@ public class MainActivity extends AppCompatActivity {
     protected ImageButton fwd600Button;
     protected ImageButton back600Button;
     protected Button launchButton;
-    protected CommandService commandService;
+    protected ConnectionIndicator connectionIndicator;
+    protected CommandSocketIoService commandService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,85 +52,52 @@ public class MainActivity extends AppCompatActivity {
         checkConnectivity();
         displayVersionTextView();
         PrefsManager.launch(this);
-        baseUrl = PrefsManager.apiUrl;
-
-        commandService = new CommandService();
-        commandService.setOnResponseListener(new AbstractService.OnResponseListener() {
+        commandService = new CommandSocketIoService();
+        commandService.setOnResponseListener(new CommandSocketIoService.OnResponseListener() {
             @Override
-            public void onResponse(String response) {
-                try {
-                    JSONObject jsonObject = new JSONObject(response);
-                    if (jsonObject.has("running")) {
-                        boolean running = Boolean.valueOf(String.valueOf(jsonObject.get("running")));
-                        setButtonStates(running);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    Toaster.shortToast(getApplicationContext(), e.getMessage());
-                }
+            public void onSuccess(String success) {
+                runOnUiThread(() -> setButtonStates(true));
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    setButtonStates(false);
+                    Toaster.shortToast(getApplicationContext(), error);
+                });
             }
         });
+
+        connectionIndicator = new ConnectionIndicator(
+                findViewById(R.id.connection_indicator),
+                findViewById(R.id.connection_message)
+        );
 
         editText = findViewById(R.id.youtube_text_uri);
 
         playButton = findViewById(R.id.button_play);
-        playButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                commandService.play();
-            }
-        });
+        playButton.setOnClickListener(view -> commandService.play());
 
         stopButton = findViewById(R.id.button_stop);
-        stopButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                commandService.stop();
-            }
-        });
+        stopButton.setOnClickListener(view -> commandService.stop());
 
         fwd30Button = findViewById(R.id.button_ff);
-        fwd30Button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                commandService.fwd30();
-            }
-        });
+        fwd30Button.setOnClickListener(view -> commandService.fwd30());
 
         back30Button = findViewById(R.id.button_rewind);
-        back30Button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                commandService.back30();
-            }
-        });
-
+        back30Button.setOnClickListener(view -> commandService.back30());
 
         fwd600Button = findViewById(R.id.button_next);
-        fwd600Button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                commandService.fwd600();
-            }
-        });
+        fwd600Button.setOnClickListener(view -> commandService.fwd600());
 
         back600Button = findViewById(R.id.button_previous);
-        back600Button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                commandService.back600();
-            }
-        });
+        back600Button.setOnClickListener(view -> commandService.back600());
 
         launchButton = findViewById(R.id.launch_button);
-        launchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                extract(editText.getText().toString());
-            }
-        });
+        launchButton.setOnClickListener(v -> extract(editText.getText().toString()));
 
         setButtonStates(false);
+        launchButton.setEnabled(false);
 
         if (null == savedInstanceState && Intent.ACTION_SEND.equals(getIntent().getAction())
                 && getIntent().getType() != null && "text/plain".equals(getIntent().getType())
@@ -146,6 +117,22 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         setContentView(R.layout.activity_main);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SocketIOHolder.launch();
+        SocketIOHolder.setEventsListener(this);
+        SocketIOHolder.initEventListeners();
+
+        commandService.initListeners();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        SocketIOHolder.stop();
     }
 
     @Override
@@ -191,12 +178,12 @@ public class MainActivity extends AppCompatActivity {
         ytUrlResolver.setResolvedUrlListener(new YtUrlResolver.OnResolvedUrlListener() {
             @Override
             public void onResolvedUrl(String url) {
-                launchVideo("/omx", url);
+                launchVideo("omx", url);
             }
 
             @Override
             public void onError(String message, String youtubeLink) {
-                launchVideo("/yt", youtubeLink);
+                launchVideo("yt", youtubeLink);
             }
         });
         launchButton.setEnabled(false);
@@ -234,5 +221,36 @@ public class MainActivity extends AppCompatActivity {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onSocketIOConnect() {
+        runOnUiThread(() -> {
+            connectionIndicator.setConnected(getApplicationContext());
+            setButtonStates(false);
+        });
+    }
+
+    @Override
+    public void onSocketIOTimeout() {
+        runOnUiThread(() -> {
+            connectionIndicator.setTimeout(getApplicationContext());
+            setButtonStates(false);
+            launchButton.setEnabled(false);
+        });
+    }
+
+    @Override
+    public void onSocketIODisconnect() {
+        runOnUiThread(() -> {
+            connectionIndicator.setDisconnected(getApplicationContext());
+            setButtonStates(false);
+            launchButton.setEnabled(false);
+        });
+    }
+
+    @Override
+    public void onSocketIOMessage(Object... args) {
+        //empty method
     }
 }

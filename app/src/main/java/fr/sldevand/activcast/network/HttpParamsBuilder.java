@@ -17,5 +17,4 @@ public class HttpParamsBuilder {
         }
         return postData.toString();
     }
-
 }

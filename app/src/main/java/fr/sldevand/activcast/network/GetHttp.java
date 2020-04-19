@@ -7,14 +7,14 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import fr.sldevand.activcast.helper.ErrorResponse;
+import fr.sldevand.activcast.helper.JsonResponse;
 
 public class GetHttp extends AbstractHttp{
     @Override
     protected String doInBackground(String... strings) {
         String address = strings[0];
         if (null == address || address.equals("")) {
-            return ErrorResponse.NOT_FOUND;
+            return JsonResponse.NOT_FOUND;
         }
         InputStream in = null;
         try {
@@ -27,7 +27,7 @@ public class GetHttp extends AbstractHttp{
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-            return ErrorResponse.NOT_FOUND;
+            return JsonResponse.NOT_FOUND;
         } finally {
             try {
                 if (null != in) in.close();
@@ -36,6 +36,6 @@ public class GetHttp extends AbstractHttp{
             }
         }
 
-        return ErrorResponse.NOT_FOUND;
+        return JsonResponse.NOT_FOUND;
     }
 }
