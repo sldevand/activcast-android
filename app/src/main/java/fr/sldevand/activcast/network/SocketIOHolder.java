@@ -9,7 +9,6 @@ import fr.sldevand.activcast.interfaces.SocketIOEventsListener;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 
-
 public final class SocketIOHolder {
 
     static Socket socket;
@@ -62,6 +61,9 @@ public final class SocketIOHolder {
 
     public static void initEventListeners() {
 
+        if (null == socket) {
+            return;
+        }
         socket.on(Socket.EVENT_CONNECT, args -> {
             if (null != mEventsListener) mEventsListener.onSocketIOConnect();
         }).on(Socket.EVENT_CONNECT_TIMEOUT, args -> {

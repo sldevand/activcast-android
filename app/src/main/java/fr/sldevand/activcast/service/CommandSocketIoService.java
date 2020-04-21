@@ -43,11 +43,14 @@ public class CommandSocketIoService {
     }
 
     public void initListeners() {
+        if (null == SocketIOHolder.getSocket()) {
+            return;
+        }
         SocketIOHolder.getSocket().on("success", (args) -> {
             for (Object arg : args) {
                 if (null != onResponseListener) onResponseListener.onSuccess(String.valueOf(arg));
             }
-        }).on("error", (args) -> {
+        }).on("trouble", (args) -> {
             for (Object arg : args) {
                 if (null != onResponseListener) onResponseListener.onError(String.valueOf(arg));
             }

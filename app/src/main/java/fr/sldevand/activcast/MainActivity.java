@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -19,14 +18,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import androidx.appcompat.app.AppCompatActivity;
-
 import fr.sldevand.activcast.activity.SettingsActivity;
 import fr.sldevand.activcast.components.ConnectionIndicator;
+import fr.sldevand.activcast.helper.JsonResponse;
 import fr.sldevand.activcast.helper.PrefsManager;
 import fr.sldevand.activcast.interfaces.SocketIOEventsListener;
 import fr.sldevand.activcast.network.NetworkUtil;
 import fr.sldevand.activcast.network.SocketIOHolder;
-import fr.sldevand.activcast.service.AbstractHttpService;
 import fr.sldevand.activcast.service.CommandSocketIoService;
 import fr.sldevand.activcast.service.YtUrlResolver;
 import fr.sldevand.activcast.utils.Toaster;
@@ -56,15 +54,12 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
         commandService.setOnResponseListener(new CommandSocketIoService.OnResponseListener() {
             @Override
             public void onSuccess(String success) {
-                runOnUiThread(() -> setButtonStates(true));
+                runOnUiThread(() -> processSocketIOResponse(success, "success"));
             }
 
             @Override
             public void onError(String error) {
-                runOnUiThread(() -> {
-                    setButtonStates(false);
-                    Toaster.shortToast(getApplicationContext(), error);
-                });
+                runOnUiThread(() -> processSocketIOResponse(error, "error"));
             }
         });
 
@@ -103,6 +98,23 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
                 && getIntent().getType() != null && "text/plain".equals(getIntent().getType())
         ) {
             handleIntent();
+        }
+    }
+
+    protected void processSocketIOResponse(String message, String status) {
+        try {
+            JSONObject jsonObject = new JSONObject(message);
+            setButtonStates(JsonResponse.isRunning(jsonObject));
+
+            StringBuilder stringBuilder = new StringBuilder();
+            if ("error".equals(status)) {
+                stringBuilder.append("Error : ");
+            }
+            stringBuilder.append(JsonResponse.getMessage(jsonObject));
+            Toaster.shortToast(getApplicationContext(), stringBuilder.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toaster.shortToast(getApplicationContext(), "Could not parse message from server");
         }
     }
 
