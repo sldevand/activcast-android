@@ -139,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
         SocketIOHolder.initEventListeners();
 
         commandService.initListeners();
+        commandService.isRunning();
     }
 
     @Override
