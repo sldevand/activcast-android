@@ -111,7 +111,9 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
                 stringBuilder.append("Error : ");
             }
             stringBuilder.append(JsonResponse.getMessage(jsonObject));
-            Toaster.shortToast(getApplicationContext(), stringBuilder.toString());
+            if ("error".equals(status)) {
+                Toaster.shortToast(getApplicationContext(), stringBuilder.toString());
+            }
         } catch (JSONException e) {
             e.printStackTrace();
             Toaster.shortToast(getApplicationContext(), "Could not parse message from server");
