@@ -41,5 +41,7 @@
     <string name="domain_url_key">domain_url_key</string>
     <string name="socketio_port">SocketIO Port</string>
     <string name="socket_io_port_key">socket_io_port</string>
+    <string name="extract_yt_url">Extracting Youtube url from device</string>
+    <string name="exctract_youtube_url_rpi">Extracting Youtube url from RaspberryPi</string>
 
 </resources>

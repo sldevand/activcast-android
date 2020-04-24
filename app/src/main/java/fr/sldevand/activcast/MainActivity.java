@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
     protected ConnectionIndicator connectionIndicator;
     protected CommandSocketIoService commandService;
     protected LinearLayout progressBarLayout;
+    protected TextView progressText;
     protected boolean pendingExtract = false;
     protected String pendingYtLink;
 
@@ -84,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
         editText = findViewById(R.id.youtube_text_uri);
 
         progressBarLayout = findViewById(R.id.layout_progress);
+        progressText = findViewById(R.id.progress_text);
 
         playButton = findViewById(R.id.button_play);
         playButton.setOnClickListener(view -> commandService.play());
@@ -128,6 +130,11 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
             stringBuilder.append(JsonResponse.getMessage(jsonObject));
             if ("error".equals(status)) {
                 Toaster.shortToast(getApplicationContext(), stringBuilder.toString());
+            }
+
+            if(JsonResponse.isRunning(jsonObject)) {
+                progressBarLayout.setVisibility(View.INVISIBLE);
+                progressText.setText("");
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -196,6 +203,7 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
         }
 
         progressBarLayout.setVisibility(View.VISIBLE);
+        progressText.setText(R.string.extract_yt_url);
 
         if (null == SocketIOHolder.getSocket()
                 || !SocketIOHolder.getSocket().connected()
@@ -212,6 +220,8 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
         if (!matcherShortLink.find() && !matcherPageLink.find()) {
             Toaster.shortToast(this, R.string.youtube_pattern_no_match);
             progressBarLayout.setVisibility(View.INVISIBLE);
+            progressText.setText("");
+
             return;
         }
 
@@ -225,6 +235,7 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
 
             @Override
             public void onError(String message, String youtubeLink) {
+                progressText.setText(R.string.exctract_youtube_url_rpi);
                 launchVideo("yt", youtubeLink);
             }
         });
@@ -242,7 +253,6 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
         } finally {
             pendingYtLink = "";
             pendingExtract = false;
-            progressBarLayout.setVisibility(View.INVISIBLE);
         }
     }
 
