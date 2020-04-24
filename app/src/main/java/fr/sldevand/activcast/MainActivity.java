@@ -47,9 +47,16 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        PrefsManager.launch(this);
+        if (!PrefsManager.areTherePrefs()) {
+            Toaster.longToast(
+                    this,
+                    "Your preferences are not set, go in setings to set them up"
+            );
+        }
+
         checkConnectivity();
         displayVersionTextView();
-        PrefsManager.launch(this);
         commandService = new CommandSocketIoService();
         commandService.setOnResponseListener(new CommandSocketIoService.OnResponseListener() {
             @Override
