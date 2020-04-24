@@ -6,9 +6,11 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.json.JSONException;
@@ -18,6 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import fr.sldevand.activcast.activity.SettingsActivity;
 import fr.sldevand.activcast.components.ConnectionIndicator;
 import fr.sldevand.activcast.helper.JsonResponse;
@@ -43,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
     protected Button launchButton;
     protected ConnectionIndicator connectionIndicator;
     protected CommandSocketIoService commandService;
+    protected LinearLayout progressBarLayout;
     protected boolean pendingExtract = false;
     protected String pendingYtLink;
 
@@ -78,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
         );
 
         editText = findViewById(R.id.youtube_text_uri);
+
+        progressBarLayout = findViewById(R.id.layout_progress);
 
         playButton = findViewById(R.id.button_play);
         playButton.setOnClickListener(view -> commandService.play());
@@ -189,11 +195,15 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
             return;
         }
 
+        progressBarLayout.setVisibility(View.VISIBLE);
+
         if (null == SocketIOHolder.getSocket()
-            || !SocketIOHolder.getSocket().connected()
+                || !SocketIOHolder.getSocket().connected()
         ) {
             pendingExtract = true;
             pendingYtLink = ytLink;
+
+            return;
         }
 
         Matcher matcherShortLink = YOUTUBE_SHORT_LINK.matcher(ytLink);
@@ -201,6 +211,7 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
 
         if (!matcherShortLink.find() && !matcherPageLink.find()) {
             Toaster.shortToast(this, R.string.youtube_pattern_no_match);
+            progressBarLayout.setVisibility(View.INVISIBLE);
             return;
         }
 
@@ -229,8 +240,9 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
             e.printStackTrace();
             Toaster.shortToast(getApplicationContext(), e.getMessage());
         } finally {
-            pendingYtLink="";
-            pendingExtract=false;
+            pendingYtLink = "";
+            pendingExtract = false;
+            progressBarLayout.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -248,9 +260,9 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
         TextView versionTextView = findViewById(R.id.versionTextView);
         try {
             String versionName = getApplicationContext()
-                .getPackageManager()
-                .getPackageInfo(getApplicationContext().getPackageName(), 0)
-                .versionName;
+                    .getPackageManager()
+                    .getPackageInfo(getApplicationContext().getPackageName(), 0)
+                    .versionName;
             versionTextView.setText(versionName);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
@@ -262,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements SocketIOEventsLis
         runOnUiThread(() -> {
             connectionIndicator.setConnected(getApplicationContext());
             setButtonStates(false);
-            if(pendingExtract) {
+            if (pendingExtract) {
                 extract(pendingYtLink);
             }
         });

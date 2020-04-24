@@ -13,7 +13,7 @@
         android:layout_width="256dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/buttons_layout"
+        app:layout_constraintBottom_toTopOf="@+id/layout_progress"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -39,19 +39,25 @@
     <LinearLayout
         android:id="@+id/layout_progress"
         android:layout_width="match_parent"
-        android:layout_height="128dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintBottom_toTopOf="@+id/buttons_layout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layout_Url">
+        app:layout_constraintTop_toBottomOf="@+id/layout_Url"
+        android:visibility="invisible">
 
         <ProgressBar
             android:id="@+id/progress_circular"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="80dp"
             android:indeterminate="true"
-            android:visibility="invisible"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:text=""
             />
     </LinearLayout>
 
