@@ -48,7 +48,9 @@ public final class SocketIOHolder {
     }
 
     public static void emit(String event, String data) {
-
+        if (null == SocketIOHolder.getSocket()) {
+            return;
+        }
         if (null == _task) {
             _task = new SocketEmitTask(event);
         }

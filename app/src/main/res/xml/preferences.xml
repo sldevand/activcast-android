@@ -7,11 +7,6 @@
             android:key="@string/domain_url_key"
             android:title="@string/domain_url" />
         <EditTextPreference
-            android:defaultValue="/activcast"
-            android:dialogTitle="@string/api_url_title"
-            android:key="@string/api_url_key"
-            android:title="@string/api_url_title" />
-        <EditTextPreference
             android:defaultValue="5901"
             android:dialogTitle="@string/socketio_port"
             android:key="@string/socket_io_port_key"
